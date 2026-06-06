@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pulsing I Love You Heart</title>
+    <style>
+        /* Reset and eliminate scrollbars */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            overflow: hidden;
+            background-color: #0b1536; /* Dark blue background matching the image */
+        }
+        canvas {
+            display: block;
+            width: 100vw;
+            height: 100vh;
+        }
+    </style>
+</head>
+<body>
+
+    <canvas id="canvas"></canvas>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+
+        // Set canvas to full screen
+        function resize() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        resize();
+        window.addEventListener('resize', resize);
+
+        const text = "I love you";
+        const totalTextCount = 65; // Number of text repetitions forming the heart
+        
+        let animationTime = 0; // Tracks the progression of the pulse animation
+
+        // Heart mathematical formula
+        // x = 16 * sin^3(t)
+        // y = 13 * cos(t) - 5 * cos(2t) - 2 * cos(3t) - cos(4t)
+        function getHeartPoint(t) {
+            const x = 16 * Math.pow(Math.sin(t), 3);
+            const y = 13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t);
+            return { x, y };
+        }
+
+        function animate() {
+            // Clear screen every frame
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Calculate base scale factor depending on window size
+            const baseScale = Math.min(canvas.width, canvas.height) / 45;
+            
+            // In/Out pulsing dynamic multiplier using Math.sin
+            // Adjust '0.05' to change speed, and '0.15' to change pulse intensity
+            animationTime += 0.05;
+            const pulseFactor = 1 + Math.sin(animationTime) * 0.15;
+            const currentScale = baseScale * pulseFactor;
+            
+            // Absolute centering (offsetting the formula's structural shift slightly)
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2 - (currentScale * 1.5);
+
+            ctx.font = "bold 14px Arial, sans-serif";
+            ctx.fillStyle = "#ff5e7e"; // Soft pink/red color
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+
+            // Loop to plot the text along the parametric heart curve
+            for (let i = 0; i < totalTextCount; i++) {
+                // Map the loop step to a full circle in radians (from 0 to 2*PI)
+                const t = (i / totalTextCount) * Math.PI * 2;
+                const point = getHeartPoint(t);
+
+                // Transform points to screen space (Inverting Y because canvas 0,0 is top-left)
+                const screenX = centerX + point.x * currentScale;
+                const screenY = centerY - point.y * currentScale;
+
+                ctx.fillText(text, screenX, screenY);
+            }
+
+            // Continuously loops the animation frame smoothly
+            requestAnimationFrame(animate);
+        }
+
+        // Start the animation loop
+        animate();
+    </script>
+</body>
+</html>
